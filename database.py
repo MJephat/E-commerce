@@ -1,5 +1,7 @@
 import sqlite3
 
+conn =sqlite3.connect('database.db')
+
 #open database
 conn.execute('''CREATE TABLE users
                 (userID INTEGER PRIMARY KEY,
@@ -13,7 +15,7 @@ conn.execute('''CREATE TABLE users
                 city TEXT,
                 state TEXT,
                 country TEXT,
-                phone TEXT,
+                phone TEXT
                 )''')
 
 conn.execute('''CREATE TABLE products
