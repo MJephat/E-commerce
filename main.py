@@ -27,14 +27,23 @@ def getLoginDetails():
 @app.route('/')
 def root():
     loggedIn,firstName, noOfItems = getLoginDetails()
-    with sqlite.connect('database.db') as conn:
+    with sqlite3.connect('database.db') as conn:
         cur = conn.cursor()
         cur.execute('SELECT productId,name, price, description,image,stock FROM products WHERE productId')
         itemData = cur.fetchall()
-        cur.excute('SELECT categoryId, name FROM categories')
-        catedoryData = cur.fetchall()
+        cur.execute('SELECT categoryId, name FROM categories')
+        categoryData = cur.fetchall()
     itemData = parse(itemData)
     return render_template('home.html', itemData=itemData, loggedIn=loggedIn, firstName=firstName, noOfItems=noOfItems, categoryData=categoryData)
+
+#Login form
+@app.route("/loginForm")
+def loginForm():
+    if 'email' in session:
+        return redirect(url_for('root'))
+    else:
+        return render_template('login.html', error='')
+
 #LOGIN
 @app.route('/login', methods=['POST','GET'])
 def login():
@@ -47,6 +56,17 @@ def login():
         else:
             error = 'Invalid UserId/Password'
             return render_template('login.html', error=error)
+
+#checking if the user is valid
+def is_valid(email, password):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('SELECT email, password FROM users')
+    data = cur.fetchall()
+    for row in data:
+        if row[0] == email and row[1] == hashlib.md5(password.encode()).hexdigest():
+            return True
+    return False
 
 #register
 @app.route("/register", methods=['GET', 'POST'])
@@ -67,15 +87,15 @@ def register():
 
         with sqlite3.connect('database.db') as conn:
             try:
-                cur = con.cursor()
+                cur = conn.cursor()
                 cur.execute('INSERT INTO users (password, email, firstName, lastName, address1, address2, zipcode, city, state, country, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (hashlib.md5(password.encode()).hexdigest(), email, firstName, lastName, address1, address2, zipcode, city, state, country, phone))
 
-                con.commit()
+                conn.commit()
                 msg = "Registered Successfully"
             except:
-                con.rollback()
+                conn.rollback()
                 msg = "Error ocured"
-        con.close()
+        conn.close()
         return render_template("login.html", error=msg)
 
 @app.route("/registerationForm")
