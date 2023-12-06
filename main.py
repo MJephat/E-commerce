@@ -68,6 +68,15 @@ def is_valid(email, password):
             return True
     return False
 
+#logout routes
+@app.route("/logout")
+def logout():
+    session.pop('email', None)
+    return redirect(url_for('root'))
+
+#
+
+
 #register
 @app.route("/register", methods=['GET', 'POST'])
 def register():
